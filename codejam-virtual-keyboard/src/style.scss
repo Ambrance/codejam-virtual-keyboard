@@ -5,10 +5,11 @@ $dark-gray: #222;
 
 body {
   background-color: $light-gray;
-  width: 85%;
+  width: 75%;
   margin: 0 auto;
   display: flex;
-  justify-content: center;
+  align-items: center;
+  flex-direction: column;
 }
 
 button {
@@ -16,6 +17,20 @@ button {
   padding: 0;
   background-color: 0;
   border: 0;
+}
+.input-field {
+  resize: none;
+  outline: none;
+  width: 100%;
+  min-height: 200px;
+  background-color: lighten($dark-gray, 20);
+  margin: 20px 0;
+  box-sizing: border-box;
+  padding: 40px;
+  font-size: 20px;
+  color: #fff;
+  text-shadow: 0 0 3px #000;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3), 0 0 40px rgba(0, 0, 0, 0.1) inset;
 }
 
 .keyboard-container {
@@ -51,7 +66,7 @@ button {
   &--tab {
     grid-column: auto / span 7;
   }
-  &--slash {
+  &--backslash {
     grid-column: auto / span 7;
   }
   &--capslock {
@@ -59,5 +74,13 @@ button {
   }
   &--backspace {
     grid-column: auto / span 10;
+  }
+  &:focus {
+    outline: none;
+  }
+  &--active {
+    transform: scale(0.98);
+    box-shadow: inset 0 0 5px 0 #fff;
+    background-color: lighten($dark-gray, 5);
   }
 }
