@@ -1,7 +1,7 @@
 class Keyboard {
-  constructor() {
+  constructor(containerClass, elClass, fieldClass) {
     this.layoutEng = {
-      keyBoardEngSigns: [
+      keyBoardSigns: [
         '`', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', 'backspace',
         'tab', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', 'backslash',
         'capslock', 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', 'enter',
@@ -74,7 +74,7 @@ class Keyboard {
       },
     };
     this.layoutRus = {
-      keyBoardRusSigns: [
+      keyBoardSigns: [
         'ё', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', 'backspace',
         'tab', 'й', 'ц', 'у', 'к', 'е', 'н', 'г', 'ш', 'щ', 'з', 'х', 'ъ', 'backslash',
         'capslock', 'ф', 'ы', 'в', 'а', 'п', 'р', 'о', 'л', 'д', 'ж', 'э', 'enter',
@@ -146,46 +146,79 @@ class Keyboard {
         Tab: 'Tab',
       },
     };
-
+    this.containerClass = containerClass;
+    this.elClass = elClass;
+    this.fieldClass = fieldClass;
+    this.field = this.createInput();
+    this.parent = this.createParent();
     this.mode = this.layoutEng;
-    this.signs = this.mode.keyBoardEngSigns;
-    this.keys = this.mode.keys;
-    console.log(this.keys);
+    this.render();
+    this.buttonsCollection = this.parent.getElementsByClassName(this.elClass);
+    this.buttonsArr = Array.from(this.buttonsCollection);
+    this.changeMode = this.changeMode.bind(this);
+    document.addEventListener('keydown', this.switchLang.bind(this));
   }
 
-  render(parent, addClass) {
+  changeMode() {
+    if (this.mode === this.layoutRus) {
+      this.mode = this.layoutEng;
+    } else {
+      this.mode = this.layoutRus;
+    }
+    this.render();
+  }
+
+  switchLang(evt) {
+    if (evt.shiftKey && evt.ctrlKey) {
+      this.changeMode();
+    }
+  }
+
+  enterSigns(evt) {
+    evt.preventDefault();
+    this.targetKey = this.buttonsArr.find((el) => el.textContent === this.mode.keys[evt.code]);
+    this.targetKey.classList.add(`${this.elClass}--active`);
+    this.field.value += this.targetKey.textContent || evt.key;
+  }
+
+  removeActiveKey(evt) {
+    evt.preventDefault();
+    this.targetKey = this.buttonsArr.find((el) => el.textContent === this.mode.keys[evt.code]);
+    this.targetKey.classList.remove(`${this.elClass}--active`);
+  }
+
+  createParent() {
+    const keyBoardBox = document.createElement('div');
+    keyBoardBox.classList.add(this.containerClass);
+    document.body.append(keyBoardBox);
+    return keyBoardBox;
+  }
+
+  createInput() {
+    const inputField = document.createElement('textarea');
+    inputField.classList.add(this.fieldClass);
+    inputField.autofocus = true;
+    document.body.append(inputField);
+    return inputField;
+  }
+
+  render() {
+    this.parent.innerHTML = '';
     const serviceKeys = ['backspace', 'tab', 'backslash', 'space', 'capslock', 'enter', 'shift'];
-    for (let i = 0; i < this.signs.length; i += 1) {
+    for (let i = 0; i < this.mode.keyBoardSigns.length; i += 1) {
       const button = document.createElement('button');
-      button.classList.add(addClass);
-      button.textContent = this.signs[i];
+      button.classList.add(this.elClass);
+      button.textContent = this.mode.keyBoardSigns[i];
       if (serviceKeys.some((elem) => button.textContent === elem)) {
-        button.className += ` ${addClass}--${button.textContent}`;
+        button.className += ` ${this.elClass}--${button.textContent}`;
       }
-      parent.append(button);
+      this.parent.append(button);
     }
   }
 }
-const inputField = document.createElement('textarea');
-inputField.classList.add('input-field');
-document.body.append(inputField);
-const keyBoardBox = document.createElement('div');
-keyBoardBox.classList.add('keyboard-container');
-document.body.append(keyBoardBox);
-const myKeyboard = new Keyboard();
-myKeyboard.render(keyBoardBox, 'keyboard-item');
-const buttonsCollection = keyBoardBox.getElementsByClassName('keyboard-item');
-const buttonsArr = Array.from(buttonsCollection);
-const enterSigns = (evt) => {
-  evt.preventDefault();
-  const target = buttonsArr.find((button) => button.textContent === myKeyboard.keys[evt.code]);
-  console.log(myKeyboard.keys[evt.code]);
-  target.classList.add('keyboard-item--active');
-  inputField.value += target.textContent;
-};
-document.addEventListener('keydown', enterSigns);
-document.addEventListener('keyup', (evt) => {
-  const target = buttonsArr.find((button) => button.textContent === myKeyboard.keys[evt.code]);
+const myKeyboard = new Keyboard('keyboard-container', 'keyboard-item', 'input-field');
+/* document.addEventListener('keyup', (evt) => {
+  const target = buttonsArr.find((button) => button.textContent === myKeyboard.mode.keys[evt.code]);
   target.classList.remove('keyboard-item--active');
 });
 document.addEventListener('mousedown', (evt) => {
@@ -198,4 +231,4 @@ document.addEventListener('mouseup', (evt) => {
   if (evt.target.tagName === 'BUTTON') {
     evt.target.classList.remove('keyboard-item--active');
   }
-});
+}); */
