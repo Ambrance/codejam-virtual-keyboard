@@ -48,31 +48,32 @@ button {
   color: #fff;
   text-shadow: 0 0 1px #fff;
   cursor: pointer;
+  position: relative;
   border-radius: 3px;
   background-color: $dark-gray;
   box-shadow: 0px 4px 1px -2px rgba(0, 0, 0, 0.05);
   &--alt {
     grid-column: auto / span 8;
   }
-  &--shift {
+  &--Shift {
     grid-column: auto / span 9;
   }
-  &--space {
+  &--Space {
     grid-column: auto / span 30;
   }
-  &--enter {
+  &--Enter {
     grid-column: auto / span 10;
   }
-  &--tab {
+  &--Tab {
     grid-column: auto / span 7;
   }
-  &--backslash {
+  &--Backslash {
     grid-column: auto / span 7;
   }
-  &--capslock {
+  &--CapsLock {
     grid-column: auto / span 8;
   }
-  &--backspace {
+  &--Backspace {
     grid-column: auto / span 10;
   }
   &:focus {
@@ -82,5 +83,20 @@ button {
     transform: scale(0.98);
     box-shadow: inset 0 0 5px 0 #fff;
     background-color: lighten($dark-gray, 5);
+  }
+  &__span {
+    display: none;
+    background-color: inherit;
+    &--active {
+      z-index: 1;
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
   }
 }
