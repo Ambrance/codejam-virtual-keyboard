@@ -174,11 +174,10 @@ class Keyboard {
     this.spansCollection = this.parent.getElementsByClassName(this.spanClass);
     this.spansArr = Array.from(this.spansCollection);
     this.changeMode = this.changeMode.bind(this);
-    this.onShiftKey = this.onShiftKey.bind(this);
-    this.enterSigns = this.enterSigns.bind(this);
-    //document.addEventListener('keydown', this.options.bind(this));
-    document.addEventListener('keydown', this.enterSigns.bind(this));
+    document.addEventListener('keydown', this.enterSignsKeyDown.bind(this));
     document.addEventListener('keyup', this.removeActiveKey.bind(this));
+    document.addEventListener('mousedown', this.enterSignsMouseDown.bind(this));
+    document.addEventListener('mouseup', this.removeActiveKey1.bind(this));
   }
 
   changeMode() {
@@ -198,9 +197,9 @@ class Keyboard {
     targetKey.classList.remove(`${this.elClass}--active`);
   }
 
-  options(evt) {
-    this.onShiftKey(evt);
-    this.enterSigns(evt);
+  removeActiveKey1(evt) {
+    evt.preventDefault();
+    evt.target.classList.remove(`${this.elClass}--active`);
   }
 
   switchLang(evt) {
@@ -210,55 +209,77 @@ class Keyboard {
   }
 
   onShiftKey(evt) {
-    if (evt.shiftKey) {
+    if (evt.shiftKey || evt.code === 'CapsLock') {
       this.spansArr.map((item) => item.classList.add(`${this.spanClass}--active`));
     }
   }
 
+  /* onCapsLockKey(evt) {
+    if (evt.code === 'CapsLock') {
+      this.field.value += targetKey.innerText.toUpperCase();
+  }
+} */
+
   onEnterKey(evt) {
-    if (evt.key === 'Enter') {
+    if (evt.key === 'Enter' || evt.target.innerText === 'Enter') {
       this.field.value += '\n';
     }
   }
 
   onSpaceKey(evt) {
-    if (evt.code === 'Space') {
+    if (evt.code === 'Space' || evt.target.innerText === 'Space') {
       this.field.value += ' ';
     }
   }
 
   onTabKey(evt) {
-    if (evt.code === 'Tab') {
+    if (evt.code === 'Tab' || evt.target.innerText === 'Tab') {
       this.field.value += '\t';
     }
   }
 
   onBackspaceKey(evt) {
-    if (evt.code === 'Backspace') {
+    if (evt.code === 'Backspace' || evt.target.innerText === 'Backspace') {
       this.field.value = this.field.value.substring(0, this.field.value.length - 1);
     }
   }
 
-  enterSigns(evt) {
+  options(evt) {
+    this.onEnterKey(evt);
+    this.onSpaceKey(evt);
+    this.onBackspaceKey(evt);
+    this.onTabKey(evt);
+  }
+
+  enterSignsKeyDown(evt) {
     evt.preventDefault();
     const targetKey = this.buttonsArr.find((el) => el.innerText === this.mode.keys[evt.code]);
-    console.log(evt.code);
     this.switchLang(evt);
-    if (evt.shiftKey) {
+    /* if (evt.shiftKey) {
+      let isShift = true;
       this.onShiftKey(evt);
-      this.field.value += targetKey.firstChild.innerText;
-    }
+      if (isShift) {
+        this.field.value += targetKey.firstChild.innerText;
+      }
+    } */
     if (this.serviceKeys.some((elem) => evt.code === elem)) {
-      this.onEnterKey(evt);
-      this.onSpaceKey(evt);
-      this.onBackspaceKey(evt);
-      this.onTabKey(evt);
-    }
-    else {
+      this.options(evt);
+    } else {
       this.field.value += targetKey.innerText;
     }
-      //targetKey = this.buttonsArr.find((el) => el.innerText === this.mode.keys[evt.code]);
-      targetKey.classList.add(`${this.elClass}--active`);
+    targetKey.classList.add(`${this.elClass}--active`);
+  }
+
+  enterSignsMouseDown(evt) {
+    evt.preventDefault();
+    if (evt.target.tagName === 'BUTTON') {
+      if (this.serviceKeys.some((elem) => evt.target.innerText === elem)) {
+        this.options(evt);
+      } else {
+        this.field.value += evt.target.innerText;
+      }
+      evt.target.classList.add(`${this.elClass}--active`);
+    }
   }
 
   createParent() {
@@ -294,15 +315,3 @@ class Keyboard {
   }
 }
 const myKeyboard = new Keyboard('keyboard-container', 'keyboard-item', 'keyboard-item__span', 'input-field');
-/* 
-document.addEventListener('mousedown', (evt) => {
-  if (evt.target.tagName === 'BUTTON') {
-    evt.target.classList.add('keyboard-item--active');
-    inputField.value += evt.target.textContent;
-  }
-});
-document.addEventListener('mouseup', (evt) => {
-  if (evt.target.tagName === 'BUTTON') {
-    evt.target.classList.remove('keyboard-item--active');
-  }
-}); */
