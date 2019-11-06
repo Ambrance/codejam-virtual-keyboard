@@ -3,14 +3,14 @@ class Keyboard {
     this.layoutEng = {
       keyBoardSigns: [
         '`', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', 'Backspace',
-        'Tab', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', 'Backslash',
+        'Tab', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\\', 'Del',
         'CapsLock', 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', 'Enter',
         'Shift', 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/', '▲', 'Shift',
         'Ctrl', 'win', 'Alt', 'Space', 'Alt', '◄', '▼', '►', 'Ctrl',
       ],
       onShift: [
         '~', '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+', 'Backspace',
-        'Tab', 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '{', '}', 'Backslash',
+        'Tab', 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '{', '}', '/', 'Del',
         'CapsLock', 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', ':', '"', 'Enter',
         'Shift', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', '<', '>', '?', '▲', 'Shift',
         'Ctrl', 'win', 'Alt', 'Space', 'Alt', '◄', '▼', '►', 'Ctrl',
@@ -83,14 +83,14 @@ class Keyboard {
     this.layoutRus = {
       keyBoardSigns: [
         'ё', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', 'Backspace',
-        'Tab', 'й', 'ц', 'у', 'к', 'е', 'н', 'г', 'ш', 'щ', 'з', 'х', 'ъ', 'Backslash',
+        'Tab', 'й', 'ц', 'у', 'к', 'е', 'н', 'г', 'ш', 'щ', 'з', 'х', 'ъ', '\\', 'Del',
         'CapsLock', 'ф', 'ы', 'в', 'а', 'п', 'р', 'о', 'л', 'д', 'ж', 'э', 'Enter',
         'Shift', 'я', 'ч', 'с', 'м', 'и', 'т', 'ь', 'б', 'ю', '.', '▲', 'Shift',
         'Ctrl', 'win', 'Alt', 'Space', 'Alt', '◄', '▼', '►', 'Ctrl',
       ],
       onShift: [
         'Ё', '!', '"', '№', ';', '%', ':', '?', '*', '(', ')', '_', '+', 'Backspace',
-        'Tab', 'Й', 'Ц', 'У', 'К', 'Е', 'Н', 'Г', 'Ш', 'Щ', 'З', 'Х', 'Ъ', 'Backslash',
+        'Tab', 'Й', 'Ц', 'У', 'К', 'Е', 'Н', 'Г', 'Ш', 'Щ', 'З', 'Х', 'Ъ', '/', 'Del',
         'CapsLock', 'Ф', 'Ы', 'В', 'А', 'П', 'Р', 'О', 'Л', 'Д', 'Ж', 'Э', 'Enter',
         'Shift', 'Я', 'Ч', 'С', 'М', 'И', 'Т', 'Ь', 'Б', 'Ю', ',', '▲', 'Shift',
         'Ctrl', 'win', 'Alt', 'Space', 'Alt', '◄', '▼', '►', 'Ctrl',
@@ -160,22 +160,30 @@ class Keyboard {
         Tab: 'Tab',
       },
     };
-    this.serviceKeys = ['Backspace', 'Tab', 'Backslash', 'Space', 'CapsLock', 'Enter', 'Shift'];
+    this.serviceKeys = ['Backspace', 'Tab', 'Space', 'CapsLock', 'Enter', 'Shift', 'Alt', 'Del'];
     this.containerClass = containerClass;
     this.elClass = elClass;
     this.spanClass = spanClass;
     this.fieldClass = fieldClass;
+  }
+
+  initialize() {
     this.field = this.createInput();
     this.parent = this.createParent();
+    this.isShift = false;
+    this.isCapsLock = false;
     this.mode = JSON.parse(localStorage.getItem('mode')) ? JSON.parse(localStorage.getItem('mode')) : this.layoutEng;
     this.render();
-    this.buttonsCollection = this.parent.getElementsByClassName(this.elClass);
-    this.buttonsArr = Array.from(this.buttonsCollection);
-    this.spansCollection = this.parent.getElementsByClassName(this.spanClass);
-    this.spansArr = Array.from(this.spansCollection);
     this.changeMode = this.changeMode.bind(this);
-    document.addEventListener('keydown', this.enterSignsKeyDown.bind(this));
-    document.addEventListener('keyup', this.removeActiveKey.bind(this));
+    this.enterSignsKeyDown = this.enterSignsKeyDown.bind(this);
+    this.removeActiveKey = this.removeActiveKey.bind(this);
+    document.addEventListener('keydown', (function (evt) {
+      this.enterSignsKeyDown(evt);
+    }).bind(this));
+    document.addEventListener('keyup', (function (evt) {
+      this.removeActiveKey(evt);
+      this.offShiftKey();
+    }).bind(this));
     document.addEventListener('mousedown', this.enterSignsMouseDown.bind(this));
     document.addEventListener('mouseup', this.removeActiveKey1.bind(this));
   }
@@ -209,16 +217,22 @@ class Keyboard {
   }
 
   onShiftKey(evt) {
-    if (evt.shiftKey || evt.code === 'CapsLock') {
+    if (evt.key === 'Shift') {
+      this.isShift = true;
       this.spansArr.map((item) => item.classList.add(`${this.spanClass}--active`));
     }
   }
 
-  /* onCapsLockKey(evt) {
-    if (evt.code === 'CapsLock') {
-      this.field.value += targetKey.innerText.toUpperCase();
+  offShiftKey() {
+    this.isShift = false;
+    this.spansArr.map((item) => item.classList.remove(`${this.spanClass}--active`));
   }
-} */
+
+  onCapsLock(evt) {
+    if (evt.code === 'CapsLock') {
+      this.isCapsLock = true;
+    }
+  }
 
   onEnterKey(evt) {
     if (evt.key === 'Enter' || evt.target.innerText === 'Enter') {
@@ -249,23 +263,30 @@ class Keyboard {
     this.onSpaceKey(evt);
     this.onBackspaceKey(evt);
     this.onTabKey(evt);
+    this.onShiftKey(evt);
+    this.onCapsLock(evt);
   }
 
   enterSignsKeyDown(evt) {
     evt.preventDefault();
-    const targetKey = this.buttonsArr.find((el) => el.innerText === this.mode.keys[evt.code]);
+    this.buttonsCollection = this.parent.getElementsByClassName(this.elClass);
+    this.buttonsArr = Array.from(this.buttonsCollection);
+    this.spansCollection = this.parent.getElementsByClassName(this.spanClass);
+    this.spansArr = Array.from(this.spansCollection);
     this.switchLang(evt);
-    /* if (evt.shiftKey) {
-      let isShift = true;
-      this.onShiftKey(evt);
-      if (isShift) {
-        this.field.value += targetKey.firstChild.innerText;
-      }
-    } */
+    let targetKey = this.buttonsArr.find((el) => el.innerText === this.mode.keys[evt.code]);
     if (this.serviceKeys.some((elem) => evt.code === elem)) {
       this.options(evt);
-    } else {
+      console.log(this.isShift);
+    }
+    if (this.isCapsLock === true) {
+      this.field.value += targetKey.innerText.toUpperCase();
+    } else if (this.isShift === true) {
+      targetKey = this.spansArr.find((el) => el.innerText === this.mode.onShift[evt.code]);
       this.field.value += targetKey.innerText;
+      this.isShift = false;
+    } else {
+      //this.field.value += targetKey.innerText;
     }
     targetKey.classList.add(`${this.elClass}--active`);
   }
@@ -315,3 +336,4 @@ class Keyboard {
   }
 }
 const myKeyboard = new Keyboard('keyboard-container', 'keyboard-item', 'keyboard-item__span', 'input-field');
+myKeyboard.initialize();
