@@ -177,13 +177,8 @@ class Keyboard {
     this.changeMode = this.changeMode.bind(this);
     this.enterSignsKeyDown = this.enterSignsKeyDown.bind(this);
     this.removeActiveKey = this.removeActiveKey.bind(this);
-    document.addEventListener('keydown', (function (evt) {
-      this.enterSignsKeyDown(evt);
-    }).bind(this));
-    document.addEventListener('keyup', (function (evt) {
-      this.removeActiveKey(evt);
-      this.offShiftKey();
-    }).bind(this));
+    document.addEventListener('keydown', this.enterSignsKeyDown);
+    document.addEventListener('keyup', this.removeActiveKey);
     document.addEventListener('mousedown', this.enterSignsMouseDown.bind(this));
     document.addEventListener('mouseup', this.removeActiveKey1.bind(this));
   }
@@ -230,7 +225,7 @@ class Keyboard {
 
   onCapsLock(evt) {
     if (evt.code === 'CapsLock') {
-      this.isCapsLock = true;
+      this.isCapsLock = !this.isCapsLock;
     }
   }
 
@@ -277,16 +272,14 @@ class Keyboard {
     let targetKey = this.buttonsArr.find((el) => el.innerText === this.mode.keys[evt.code]);
     if (this.serviceKeys.some((elem) => evt.code === elem)) {
       this.options(evt);
-      console.log(this.isShift);
-    }
-    if (this.isCapsLock === true) {
+    } else if (this.isCapsLock === true && !this.serviceKeys.some((elem) => evt.code === elem)) {
       this.field.value += targetKey.innerText.toUpperCase();
     } else if (this.isShift === true) {
       targetKey = this.spansArr.find((el) => el.innerText === this.mode.onShift[evt.code]);
       this.field.value += targetKey.innerText;
       this.isShift = false;
     } else {
-      //this.field.value += targetKey.innerText;
+      this.field.value += targetKey.innerText;
     }
     targetKey.classList.add(`${this.elClass}--active`);
   }
